@@ -23,6 +23,9 @@ Thumbs.db
 # Data
 *.db
 chroma_db/
+data/raw/html/
+data/raw/pdfs/
+data/processed/
 
 # Misc
 *.log
