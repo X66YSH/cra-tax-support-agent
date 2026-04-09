@@ -37,6 +37,7 @@ def chat(messages: list[dict], **kwargs) -> str:
     response = client.chat.completions.create(
         model=LLM_MODEL,
         messages=messages,
+        max_tokens=1000,
         **kwargs,
     )
     return response.choices[0].message.content
