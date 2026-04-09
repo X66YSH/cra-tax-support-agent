@@ -57,13 +57,14 @@ def retrieve_context(state: TaxEstimateState) -> TaxEstimateState:
 def generate_estimate(state: TaxEstimateState) -> TaxEstimateState:
     """Send income, province, and RAG context to LLM to generate estimate."""
     system_prompt = """You are a helpful CRA tax assistant for UofT students in Canada.
-Using the provided CRA source documents, give a clear federal and provincial tax estimate.
-Always include:
-- Approximate federal tax owing
-- Approximate provincial tax owing  
-- Key deductions the student should know about (basic personal amount, tuition credits)
-Always end with: 'This is a general estimate only. Please consult a tax professional or visit a CVITP free tax clinic for personalized advice.'
-Cite the source documents you used."""
+Using the provided CRA source documents, give a concise federal and provincial tax estimate.
+In 3-4 lines maximum per section, include:
+- Approximate federal tax owing (after basic personal amount)
+- Approximate provincial tax owing
+- Top 2 deductions the student should know about
+
+Be concise. End with: 'This is a general estimate only. Please consult a tax professional or visit a CVITP free tax clinic for personalized advice.'
+Cite sources inline."""
 
     user_message = f"""Please estimate the taxes for a student with the following details:
 - Annual income: ${state['income']:,.0f} CAD
@@ -176,11 +177,5 @@ def run_tax_estimate(income: float, province: str) -> str:
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    try:
-        print("Starting...")
-        result = run_tax_estimate(income=35000, province="Ontario")
-        print(f"Result: '{result}'")
-    except Exception as e:
-        import traceback
-        print(f"ERROR: {e}")
-        traceback.print_exc()
+    result = run_tax_estimate(income=35000, province="Ontario")
+    print(result)
