@@ -22,8 +22,9 @@ PyPDF2==3.0.1
 # State / persistence
 sqlalchemy==2.0.36
 
-# Frontend
-streamlit==1.41.1
+# Backend API
+fastapi==0.115.6
+uvicorn==0.34.0
 
 # Utilities
 python-dotenv==1.0.1
