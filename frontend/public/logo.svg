@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="50%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="30" y1="20" x2="90" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#c7d2fe" stop-opacity="0.8"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background with subtle rounded shape -->
+  <rect width="120" height="120" rx="32" fill="url(#g1)"/>
+
+  <!-- Subtle inner glow ring -->
+  <rect x="6" y="6" width="108" height="108" rx="28" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+
+  <!-- Modern minimal maple leaf - clean geometric style -->
+  <g filter="url(#glow)">
+    <path d="
+      M60 20
+      L65 40 L78 33 L73 47 L90 48 L77 56 L84 68 L69 62 L66 76 L60 65
+      L54 76 L51 62 L36 68 L43 56 L30 48 L47 47 L42 33 L55 40 Z
+    " fill="url(#g2)" opacity="0.92"/>
+  </g>
+
+  <!-- Sleek dollar sign - thin modern weight -->
+  <g opacity="0.9">
+    <line x1="60" y1="38" x2="60" y2="66" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+    <path d="M52 44 C52 40, 60 38, 60 38 C60 38, 68 40, 68 44 C68 48, 60 50, 60 50 C60 50, 52 52, 52 56 C52 60, 60 62, 60 62 C60 62, 68 60, 68 56"
+      fill="none" stroke="#6366f1" stroke-width="2.2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Bottom accent bar -->
+  <rect x="30" y="86" width="60" height="3" rx="1.5" fill="rgba(255,255,255,0.3)"/>
+  <rect x="42" y="93" width="36" height="2" rx="1" fill="rgba(255,255,255,0.15)"/>
+</svg>

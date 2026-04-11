@@ -1,14 +1,27 @@
-import { Plus, Trash2, MessageSquare, Sun, Moon, Landmark } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Trash2, MessageSquare, Sun, Moon } from 'lucide-react';
 
 export default function Sidebar({ sessions, activeId, onSelect, onCreate, onDelete, dark, onToggleDark }) {
+  const [confirmDelete, setConfirmDelete] = useState(null);
+
+  const handleDelete = (e, id) => {
+    e.stopPropagation();
+    if (confirmDelete === id) {
+      onDelete(id);
+      setConfirmDelete(null);
+    } else {
+      setConfirmDelete(id);
+      // Auto-dismiss after 3 seconds
+      setTimeout(() => setConfirmDelete(null), 3000);
+    }
+  };
+
   return (
     <div className={`w-72 h-screen flex flex-col border-r ${dark ? 'bg-sidebar-dark border-slate-800' : 'bg-sidebar border-slate-200'}`}>
       {/* Header */}
       <div className={`p-4 border-b ${dark ? 'border-slate-800' : 'border-slate-200'}`}>
         <div className="flex items-center gap-3 mb-4">
-          <div className="bot-avatar w-9 h-9 rounded-xl flex items-center justify-center shadow-sm">
-            <Landmark size={16} className="text-white" />
-          </div>
+          <img src="/logo.svg" alt="CRA Tax" className="w-9 h-9 rounded-xl shadow-sm" />
           <div>
             <h1 className={`text-sm font-semibold ${dark ? 'text-white' : 'text-slate-900'}`}>CRA Tax Support</h1>
             <p className={`text-xs ${dark ? 'text-slate-500' : 'text-slate-500'}`}>UofT Student Assistant</p>
@@ -53,10 +66,13 @@ export default function Sidebar({ sessions, activeId, onSelect, onCreate, onDele
               {s.title}
             </span>
             <button
-              onClick={(e) => { e.stopPropagation(); onDelete(s.id); }}
-              className={`opacity-0 group-hover:opacity-100 p-1 rounded-lg transition-all ${
-                dark ? 'hover:bg-slate-700 text-slate-500' : 'hover:bg-slate-200 text-slate-400'
+              onClick={(e) => handleDelete(e, s.id)}
+              className={`p-1 rounded-lg transition-all ${
+                confirmDelete === s.id
+                  ? 'opacity-100 bg-red-500/20 text-red-400'
+                  : `opacity-0 group-hover:opacity-100 ${dark ? 'hover:bg-slate-700 text-slate-500' : 'hover:bg-slate-200 text-slate-400'}`
               }`}
+              title={confirmDelete === s.id ? 'Click again to confirm' : 'Delete'}
             >
               <Trash2 size={13} />
             </button>

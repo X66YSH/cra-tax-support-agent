@@ -60,6 +60,7 @@ Your job is to analyze the user's message and return a JSON object with:
 
 IMPORTANT RULES:
 - Return ONLY valid JSON, no markdown, no explanation outside the JSON
+- Be concise and fast — do not overthink, just classify and extract
 - For out_of_scope: tax evasion, filing for someone else, illegal advice, unrelated topics
 - For general_question: factual tax questions that don't require collecting parameters
 - Extract income even if written as "18k", "18,000", "$18000" — always convert to float
@@ -138,7 +139,7 @@ def classify_intent(user_message: str, conversation_history: list[dict] = None) 
     messages.append({"role": "user", "content": user_message})
 
     try:
-        response = chat(messages)
+        response = chat(messages, max_tokens=800)
 
         if not response:
             logger.warning("Empty response from LLM classifier")

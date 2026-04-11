@@ -31,3 +31,21 @@ export async function sendMessage(sessionId, message) {
   });
   return res.json();
 }
+
+export async function callAction(action, params) {
+  const res = await fetch(`${API}/action`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, params }),
+  });
+  return res.json();
+}
+
+export async function createReminder(data) {
+  const res = await fetch(`${API}/reminders`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  return res.json();
+}
