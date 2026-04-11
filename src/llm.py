@@ -34,13 +34,19 @@ def chat(messages: list[dict], **kwargs) -> str:
         The assistant's reply as a string.
     """
     client = get_client()
+    kwargs.setdefault("max_tokens", 2000)
     response = client.chat.completions.create(
         model=LLM_MODEL,
         messages=messages,
-        max_tokens=1000,
         **kwargs,
     )
-    return response.choices[0].message.content
+    msg = response.choices[0].message
+    # qwen3 reasoning model: actual answer is in content,
+    # but if content is empty/null, fall back to reasoning_content
+    content = msg.content
+    if not content:
+        content = getattr(msg, "reasoning_content", None) or ""
+    return content
 
 
 if __name__ == "__main__":
