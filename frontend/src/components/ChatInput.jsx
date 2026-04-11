@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Send, Calculator, Gift, Bell, CalendarCheck } from 'lucide-react';
 
 const actions = [
@@ -10,6 +10,12 @@ const actions = [
 
 export default function ChatInput({ onSend, disabled, dark, activeAction }) {
   const [text, setText] = useState('');
+  const inputRef = useRef(null);
+
+  // Re-focus input after loading finishes
+  useEffect(() => {
+    if (!disabled) inputRef.current?.focus();
+  }, [disabled]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -17,6 +23,7 @@ export default function ChatInput({ onSend, disabled, dark, activeAction }) {
     if (!trimmed || disabled) return;
     onSend(trimmed);
     setText('');
+    setTimeout(() => inputRef.current?.focus(), 0);
   };
 
   const handleKeyDown = (e) => {
@@ -26,25 +33,24 @@ export default function ChatInput({ onSend, disabled, dark, activeAction }) {
     }
   };
 
-  const showChips = !activeAction && !disabled;
-
   return (
     <div className={`border-t px-4 py-3 ${dark ? 'border-slate-800' : 'border-slate-200'}`}>
-      {/* Action chips */}
-      {showChips && (
-        <div className="flex gap-2 mb-3 overflow-x-auto pb-1">
-          {actions.map((a, i) => (
-            <button
-              key={i}
-              onClick={() => onSend(a.message)}
-              className={`action-chip flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border whitespace-nowrap ${a.bg} ${a.border} ${a.color}`}
-            >
-              <a.icon size={13} />
-              {a.label}
-            </button>
-          ))}
-        </div>
-      )}
+      {/* Action chips — always visible */}
+      <div className="flex gap-2 mb-3 overflow-x-auto pb-1">
+        {actions.map((a, i) => (
+          <button
+            key={i}
+            onClick={() => !disabled && onSend(a.message)}
+            disabled={disabled}
+            className={`action-chip flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border whitespace-nowrap transition-opacity ${
+              disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+            } ${a.bg} ${a.border} ${a.color}`}
+          >
+            <a.icon size={13} />
+            {a.label}
+          </button>
+        ))}
+      </div>
 
       {/* Input */}
       <form onSubmit={handleSubmit}>
@@ -52,6 +58,7 @@ export default function ChatInput({ onSend, disabled, dark, activeAction }) {
           dark ? 'bg-slate-800/80 border border-slate-700' : 'bg-white border border-slate-200'
         } focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/40 transition-all shadow-sm`}>
           <textarea
+            ref={inputRef}
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}

@@ -40,6 +40,18 @@ def init_db():
             created_at TEXT NOT NULL
         );
         CREATE INDEX IF NOT EXISTS idx_messages_session ON messages(session_id);
+
+        CREATE TABLE IF NOT EXISTS reminders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT,
+            phone TEXT,
+            frequency TEXT NOT NULL DEFAULT 'one-time',
+            delivery TEXT NOT NULL DEFAULT 'email',
+            next_date TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            active INTEGER NOT NULL DEFAULT 1
+        );
     """)
     conn.close()
 
@@ -134,6 +146,26 @@ def update_session_title(session_id: str, title: str):
     conn.execute("UPDATE sessions SET title = ? WHERE id = ?", (title, session_id))
     conn.commit()
     conn.close()
+
+
+def create_reminder(name, email, phone, frequency, delivery, next_date):
+    conn = get_conn()
+    now = datetime.utcnow().isoformat()
+    conn.execute(
+        "INSERT INTO reminders (name, email, phone, frequency, delivery, next_date, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (name, email, phone, frequency, delivery, next_date, now),
+    )
+    conn.commit()
+    row = conn.execute("SELECT * FROM reminders ORDER BY id DESC LIMIT 1").fetchone()
+    conn.close()
+    return dict(row)
+
+
+def list_reminders():
+    conn = get_conn()
+    rows = conn.execute("SELECT * FROM reminders WHERE active = 1 ORDER BY next_date").fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
 
 
 # Initialize on import

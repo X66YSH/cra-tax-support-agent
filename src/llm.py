@@ -14,12 +14,17 @@ LLM_MODEL = os.getenv("LLM_MODEL", "qwen3-30b-a3b-fp8")
 LLM_API_KEY = os.getenv("LLM_API_KEY", "none")
 
 
+_client = None
+
 def get_client() -> OpenAI:
-    """Return an OpenAI-compatible client pointed at the course endpoint."""
-    return OpenAI(
-        base_url=LLM_BASE_URL,
-        api_key=LLM_API_KEY,
-    )
+    """Return a cached OpenAI-compatible client pointed at the course endpoint."""
+    global _client
+    if _client is None:
+        _client = OpenAI(
+            base_url=LLM_BASE_URL,
+            api_key=LLM_API_KEY,
+        )
+    return _client
 
 
 def chat(messages: list[dict], **kwargs) -> str:

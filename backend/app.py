@@ -8,6 +8,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 # Ensure .env is loaded from project root
@@ -22,18 +24,23 @@ from .database import (
     update_session_state,
     get_session_state,
     update_session_title,
+    create_reminder,
+    list_reminders,
 )
-from .orchestrator import process_message
+from .orchestrator import process_message, call_action
 
 app = FastAPI(title="CRA Tax Support Agent", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve frontend static files (npm run build → frontend/dist)
+FRONTEND_DIR = Path(__file__).parent.parent / "frontend" / "dist"
 
 
 class ChatRequest(BaseModel):
@@ -43,6 +50,20 @@ class ChatRequest(BaseModel):
 
 class SessionCreate(BaseModel):
     title: str = "New Chat"
+
+
+class ActionRequest(BaseModel):
+    action: str
+    params: dict
+
+
+class ReminderRequest(BaseModel):
+    name: str
+    email: str | None = None
+    phone: str | None = None
+    frequency: str = "one-time"
+    delivery: str = "email"
+    next_date: str = ""
 
 
 # --- Sessions ---
@@ -120,6 +141,48 @@ def api_chat(body: ChatRequest):
     }
 
 
+@app.post("/api/action")
+def api_action(body: ActionRequest):
+    """Call an action directly, bypassing intent classification."""
+    try:
+        result = call_action(body.action, body.params)
+        return {"result": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/reminders")
+def api_create_reminder(body: ReminderRequest):
+    reminder = create_reminder(
+        name=body.name,
+        email=body.email,
+        phone=body.phone,
+        frequency=body.frequency,
+        delivery=body.delivery,
+        next_date=body.next_date,
+    )
+    return reminder
+
+
+@app.get("/api/reminders")
+def api_list_reminders():
+    return list_reminders()
+
+
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
+
+
+# --- Serve Frontend ---
+# Mount static assets (JS, CSS, images) if frontend is built
+if FRONTEND_DIR.exists():
+    app.mount("/assets", StaticFiles(directory=FRONTEND_DIR / "assets"), name="static")
+
+    @app.get("/{full_path:path}")
+    def serve_frontend(full_path: str):
+        """Catch-all: serve index.html for client-side routing."""
+        file_path = FRONTEND_DIR / full_path
+        if file_path.is_file():
+            return FileResponse(file_path)
+        return FileResponse(FRONTEND_DIR / "index.html")

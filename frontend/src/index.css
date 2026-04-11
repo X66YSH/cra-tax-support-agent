@@ -61,6 +61,58 @@ body {
   background: rgba(12, 15, 26, 0.8);
 }
 
+/* Welcome background animated blobs */
+@keyframes blob-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -40px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+}
+.welcome-bg {
+  position: relative;
+  overflow: hidden;
+}
+.welcome-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.3;
+  animation: blob-float 8s ease-in-out infinite;
+  pointer-events: none;
+}
+.dark .welcome-blob { opacity: 0.15; }
+.welcome-blob-1 {
+  width: 300px; height: 300px;
+  background: #6366f1;
+  top: 10%; left: 15%;
+}
+.welcome-blob-2 {
+  width: 250px; height: 250px;
+  background: #06b6d4;
+  top: 40%; right: 10%;
+  animation-delay: -3s;
+}
+.welcome-blob-3 {
+  width: 200px; height: 200px;
+  background: #8b5cf6;
+  bottom: 10%; left: 40%;
+  animation-delay: -5s;
+}
+
+/* Typewriter cursor blink */
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.typing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: currentColor;
+  margin-left: 1px;
+  vertical-align: text-bottom;
+  animation: blink-cursor 0.8s step-end infinite;
+}
+
 /* Markdown in messages */
 .message-content h1,
 .message-content h2,
@@ -107,6 +159,31 @@ body {
 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
 .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
+/* Message enter animation */
+@keyframes msg-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.msg-enter {
+  animation: msg-slide-in 0.25s ease-out;
+}
+
+/* Reminder success animation */
+@keyframes success-pop {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.reminder-success {
+  animation: success-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
 /* Action chip hover */
 .action-chip {
   transition: all 0.2s ease;
@@ -114,4 +191,15 @@ body {
 .action-chip:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .msg-enter,
+  .typing-dot,
+  .action-chip,
+  .welcome-blob {
+    animation: none !important;
+    transition: none !important;
+  }
 }
