@@ -109,9 +109,18 @@ def api_chat(body: ChatRequest):
     if not state.get("action"):
         state = {"action": None, "params": {}, "awaiting": None}
 
+    # Build conversation history from previous messages (for multi-turn context)
+    conversation_history = []
+    for msg in session.get("messages", []):
+        if msg["role"] in ("user", "assistant"):
+            conversation_history.append({
+                "role": msg["role"],
+                "content": msg["content"],
+            })
+
     # Process through orchestrator
     try:
-        response_text, sources = process_message(body.message, state)
+        response_text, sources = process_message(body.message, state, conversation_history=conversation_history)
     except Exception as e:
         response_text = "Sorry, I encountered an error processing your request. Please try again."
         sources = None

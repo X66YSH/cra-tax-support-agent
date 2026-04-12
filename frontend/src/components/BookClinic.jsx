@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { CalendarCheck, FileText, Check, X, Loader2, ExternalLink } from 'lucide-react';
 import { callAction } from '../api';
 
@@ -188,8 +189,19 @@ export default function BookClinic({ dark }) {
         {/* Step 3: Result */}
         {step === 3 && result && (
           <div className="space-y-4">
-            <div className={`text-sm leading-relaxed whitespace-pre-wrap ${dark ? 'text-slate-300' : 'text-slate-700'}`}>
-              {result}
+            <div className={`message-content text-sm leading-relaxed ${dark ? 'text-slate-300' : 'text-slate-700'}`}>
+              <ReactMarkdown
+                components={{
+                  a: ({ href, children }) => (
+                    <a href={href} target="_blank" rel="noopener noreferrer"
+                      className="text-purple-500 dark:text-purple-400 underline hover:text-purple-700">
+                      {children}
+                    </a>
+                  ),
+                }}
+              >
+                {result}
+              </ReactMarkdown>
             </div>
             <a
               href="https://www.utsu.ca/tax"

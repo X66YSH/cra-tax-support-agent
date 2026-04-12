@@ -103,13 +103,14 @@ def call_action(action: str, params: dict) -> str:
     return "I'm not sure how to help with that."
 
 
-def process_message(user_input: str, state: dict) -> tuple[str, list[dict] | None]:
+def process_message(user_input: str, state: dict, conversation_history: list[dict] = None) -> tuple[str, list[dict] | None]:
     """
     Process a user message given conversation state.
 
     Args:
         user_input: the user's message
         state: dict with keys action, params, awaiting
+        conversation_history: optional list of previous messages for context
 
     Returns:
         (response_text, sources_or_none)
@@ -133,8 +134,8 @@ def process_message(user_input: str, state: dict) -> tuple[str, list[dict] | Non
             state["params"] = {}
             return result, None
 
-    # New message: classify intent
-    classification = classify_intent(user_input)
+    # New message: classify intent (with conversation history for context)
+    classification = classify_intent(user_input, conversation_history=conversation_history)
     intent = classification["intent"]
     params = classification["parameters"]
 
@@ -158,7 +159,9 @@ def process_message(user_input: str, state: dict) -> tuple[str, list[dict] | Non
     if intent == "general_question":
         results = retrieve(user_input, top_k=3)
         context = format_context_for_llm(results)
-        response = chat([
+
+        # Build messages with conversation history for multi-turn context
+        llm_messages = [
             {
                 "role": "system",
                 "content": (
@@ -168,11 +171,18 @@ def process_message(user_input: str, state: dict) -> tuple[str, list[dict] | Non
                     "Always add a disclaimer that this is general info, not professional tax advice."
                 ),
             },
-            {
-                "role": "user",
-                "content": f"Question: {user_input}\n\nCRA Documents:\n{context}",
-            },
-        ])
+        ]
+
+        # Include recent conversation history (last 6 messages) for context
+        if conversation_history:
+            llm_messages.extend(conversation_history[-6:])
+
+        llm_messages.append({
+            "role": "user",
+            "content": f"Question: {user_input}\n\nCRA Documents:\n{context}",
+        })
+
+        response = chat(llm_messages)
         sources = [
             {"title": r["title"], "url": r["source_url"], "score": r["score"]}
             for r in results

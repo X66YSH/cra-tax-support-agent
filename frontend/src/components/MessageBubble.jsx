@@ -1,6 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { User, Landmark, Copy, Check, RotateCcw } from 'lucide-react';
+import { User, Landmark, Copy, Check, RotateCcw, ExternalLink } from 'lucide-react';
+
+// Custom link renderer — opens in new tab with proper styling
+const markdownComponents = {
+  a: ({ href, children }) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-indigo-500 dark:text-indigo-400 underline hover:text-indigo-700 dark:hover:text-indigo-300"
+    >
+      {children}
+    </a>
+  ),
+};
 
 function TypewriterText({ content, dark }) {
   const [displayed, setDisplayed] = useState('');
@@ -36,7 +50,7 @@ function TypewriterText({ content, dark }) {
 
   return (
     <div className="message-content">
-      <ReactMarkdown>{displayed}</ReactMarkdown>
+      <ReactMarkdown components={markdownComponents}>{displayed}</ReactMarkdown>
       {!done && <span className="typing-cursor" />}
     </div>
   );
@@ -46,6 +60,12 @@ export default function MessageBubble({ message, dark, isNew, onRetry }) {
   const isUser = message.role === 'user';
   const isError = message.isError;
   const [copied, setCopied] = useState(false);
+  const sources = message.sources ? JSON.parse(message.sources) : null;
+
+  // Strip [Source N] references from displayed text since we show them as labels below
+  const cleanContent = message.content
+    ? message.content.replace(/\[Source\s*\d+\]/gi, '').replace(/\n{3,}/g, '\n\n').trim()
+    : '';
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(message.content);
@@ -78,10 +98,10 @@ export default function MessageBubble({ message, dark, isNew, onRetry }) {
           {isUser ? (
             <p className="whitespace-pre-wrap">{message.content}</p>
           ) : isNew && !isError ? (
-            <TypewriterText content={message.content} dark={dark} />
+            <TypewriterText content={cleanContent} dark={dark} />
           ) : (
             <div className="message-content">
-              <ReactMarkdown>{message.content}</ReactMarkdown>
+              <ReactMarkdown components={markdownComponents}>{cleanContent}</ReactMarkdown>
             </div>
           )}
 
@@ -98,6 +118,29 @@ export default function MessageBubble({ message, dark, isNew, onRetry }) {
             </button>
           )}
         </div>
+
+        {/* Sources */}
+        {!isUser && sources && sources.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {sources.map((src, i) => (
+              <a
+                key={i}
+                href={src.url || src.source}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors ${
+                  dark
+                    ? 'bg-slate-700/80 text-blue-400 hover:bg-slate-600'
+                    : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                }`}
+                title={src.title || src.source}
+              >
+                <ExternalLink size={10} />
+                Source {i + 1}
+              </a>
+            ))}
+          </div>
+        )}
 
         {/* Retry button for errors */}
         {isError && onRetry && (
