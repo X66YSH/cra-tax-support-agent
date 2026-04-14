@@ -128,9 +128,7 @@ export default function TaxCalculator({ dark }) {
   };
 
   return (
-    <div className={`msg-enter rounded-2xl overflow-hidden border ${
-      dark ? 'bg-slate-800/60 border-slate-700' : 'bg-white border-slate-200'
-    } max-w-lg w-full`}>
+    <div className="msg-enter rounded-2xl overflow-hidden interactive-glass max-w-lg w-full">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-5 py-4">
         <div className="flex items-center gap-2 text-white">

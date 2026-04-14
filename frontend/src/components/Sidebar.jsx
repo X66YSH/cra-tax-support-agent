@@ -1,8 +1,14 @@
 import { useState } from 'react';
-import { Plus, Trash2, MessageSquare, Sun, Moon } from 'lucide-react';
+import { Plus, Trash2, MessageSquare, Sun, Moon, Search, X } from 'lucide-react';
 
 export default function Sidebar({ sessions, activeId, onSelect, onCreate, onDelete, dark, onToggleDark }) {
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Filter sessions by title
+  const filtered = searchQuery.trim()
+    ? sessions.filter((s) => s.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    : sessions;
 
   const handleDelete = (e, id) => {
     e.stopPropagation();
@@ -36,6 +42,34 @@ export default function Sidebar({ sessions, activeId, onSelect, onCreate, onDele
         </button>
       </div>
 
+      {/* Search */}
+      {sessions.length > 0 && (
+        <div className="px-3 pt-3">
+          <div className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 border ${
+            dark ? 'bg-slate-800/50 border-slate-700/50' : 'bg-slate-50 border-slate-200'
+          }`}>
+            <Search size={13} className={dark ? 'text-slate-500' : 'text-slate-400'} />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search conversations..."
+              className={`flex-1 outline-none text-xs bg-transparent ${
+                dark ? 'text-slate-200 placeholder-slate-500' : 'text-slate-700 placeholder-slate-400'
+              }`}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className={`p-0.5 rounded ${dark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                <X size={11} />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Session List */}
       <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
         {sessions.length === 0 && (
@@ -43,7 +77,12 @@ export default function Sidebar({ sessions, activeId, onSelect, onCreate, onDele
             No conversations yet
           </p>
         )}
-        {sessions.map((s) => (
+        {searchQuery && filtered.length === 0 && (
+          <p className={`text-xs text-center mt-4 ${dark ? 'text-slate-600' : 'text-slate-400'}`}>
+            No matches for "{searchQuery}"
+          </p>
+        )}
+        {filtered.map((s) => (
           <div
             key={s.id}
             onClick={() => onSelect(s.id)}

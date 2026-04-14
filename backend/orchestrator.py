@@ -184,7 +184,13 @@ def process_message(user_input: str, state: dict, conversation_history: list[dic
 
         response = chat(llm_messages)
         sources = [
-            {"title": r["title"], "url": r["source_url"], "score": r["score"]}
+            {
+                "title": r["title"],
+                "url": r["source_url"],
+                "score": r["score"],
+                "text": r["text"],
+                "query": user_input,
+            }
             for r in results
         ]
         return response, sources

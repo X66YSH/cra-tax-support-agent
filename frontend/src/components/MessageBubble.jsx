@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { User, Landmark, Copy, Check, RotateCcw, ExternalLink } from 'lucide-react';
+import { User, Landmark, Copy, Check, RotateCcw, FileText, ThumbsUp, ThumbsDown } from 'lucide-react';
+import SourcePreview from './SourcePreview';
+import { formatRelative } from '../utils/time';
+import { useToast } from './Toast';
 
 // Custom link renderer — opens in new tab with proper styling
 const markdownComponents = {
@@ -60,7 +63,48 @@ export default function MessageBubble({ message, dark, isNew, onRetry }) {
   const isUser = message.role === 'user';
   const isError = message.isError;
   const [copied, setCopied] = useState(false);
+  const [activeSource, setActiveSource] = useState(null);
+  const [revealed, setRevealed] = useState(false);
+  const [reaction, setReaction] = useState(null); // 'up' | 'down' | null
+  const [tick, setTick] = useState(0); // force re-render for relative time
+  const bubbleRef = useRef(null);
   const sources = message.sources ? JSON.parse(message.sources) : null;
+  const { show: showToast } = useToast();
+
+  // Update relative timestamps every minute
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleReaction = (type) => {
+    const newReaction = reaction === type ? null : type;
+    setReaction(newReaction);
+    if (newReaction === 'up') showToast('Thanks for the feedback!', 'success', 1800);
+    if (newReaction === 'down') showToast('Thanks — we\'ll improve this.', 'info', 1800);
+  };
+
+  // Scroll reveal — trigger when bubble enters viewport
+  useEffect(() => {
+    const el = bubbleRef.current;
+    if (!el) return;
+    // For newly created messages, reveal immediately
+    if (isNew) {
+      setRevealed(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setRevealed(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isNew]);
 
   // Strip [Source N] references from displayed text since we show them as labels below
   const cleanContent = message.content
@@ -70,29 +114,31 @@ export default function MessageBubble({ message, dark, isNew, onRetry }) {
   const handleCopy = async () => {
     await navigator.clipboard.writeText(message.content);
     setCopied(true);
+    showToast('Copied to clipboard', 'success', 1500);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className={`msg-enter flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}>
+    <div
+      ref={bubbleRef}
+      className={`msg-enter scroll-reveal group ${revealed ? 'revealed' : ''} flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}
+    >
       {!isUser && (
-        <div className="bot-avatar w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow-sm">
-          <Landmark size={14} className="text-white" />
-        </div>
+        <img src="/logo.svg" alt="CRA Tax" className="w-8 h-8 rounded-full flex-shrink-0 mt-1 shadow-sm" />
       )}
 
       <div className={`max-w-[85%] md:max-w-[70%] ${isUser ? 'order-first' : ''}`}>
         <div
-          className={`group relative px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+          className={`group relative px-4 py-3 rounded-2xl text-sm leading-relaxed bubble-3d ${
             isUser
-              ? 'user-bubble text-white rounded-br-md shadow-md'
+              ? 'user-bubble user-bubble-3d text-white rounded-br-md'
               : isError
                 ? dark
                   ? 'bg-red-900/30 border border-red-800/50 text-red-300 rounded-bl-md'
                   : 'bg-red-50 border border-red-200 text-red-700 rounded-bl-md'
                 : dark
-                  ? 'glass-bubble text-slate-200 rounded-bl-md'
-                  : 'glass-bubble text-slate-800 rounded-bl-md shadow-sm'
+                  ? 'glass-bubble bot-bubble-3d text-slate-200 rounded-bl-md'
+                  : 'glass-bubble bot-bubble-3d text-slate-800 rounded-bl-md'
           }`}
         >
           {isUser ? (
@@ -119,27 +165,34 @@ export default function MessageBubble({ message, dark, isNew, onRetry }) {
           )}
         </div>
 
-        {/* Sources */}
+        {/* Sources — click to open preview sheet */}
         {!isUser && sources && sources.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-2">
             {sources.map((src, i) => (
-              <a
+              <button
                 key={i}
-                href={src.url || src.source}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors ${
+                onClick={() => setActiveSource(src)}
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-all hover:scale-105 ${
                   dark
                     ? 'bg-slate-700/80 text-blue-400 hover:bg-slate-600'
                     : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
                 }`}
-                title={src.title || src.source}
+                title={`${src.title} — click to preview`}
               >
-                <ExternalLink size={10} />
+                <FileText size={10} />
                 Source {i + 1}
-              </a>
+              </button>
             ))}
           </div>
+        )}
+
+        {/* Source preview sheet */}
+        {activeSource && (
+          <SourcePreview
+            source={activeSource}
+            onClose={() => setActiveSource(null)}
+            dark={dark}
+          />
         )}
 
         {/* Retry button for errors */}
@@ -157,13 +210,37 @@ export default function MessageBubble({ message, dark, isNew, onRetry }) {
           </button>
         )}
 
-        <p className={`text-[10px] mt-1 px-1 ${
-          isUser ? 'text-right' : 'text-left'
-        } ${dark ? 'text-slate-600' : 'text-slate-400'}`}>
-          {message.created_at
-            ? new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            : ''}
-        </p>
+        <div className={`flex items-center gap-2 mt-1 px-1 ${isUser ? 'justify-end' : 'justify-start'}`}>
+          <p className={`text-[10px] ${dark ? 'text-slate-600' : 'text-slate-400'}`}>
+            {message.created_at ? formatRelative(message.created_at) : ''}
+          </p>
+          {!isUser && !isError && (
+            <div className="flex items-center gap-0.5">
+              <button
+                onClick={() => handleReaction('up')}
+                className={`p-1 rounded-md transition-all opacity-0 group-hover:opacity-100 hover:scale-110 ${
+                  reaction === 'up'
+                    ? 'opacity-100 text-emerald-500'
+                    : dark ? 'text-slate-500 hover:text-emerald-400' : 'text-slate-400 hover:text-emerald-500'
+                }`}
+                title="Good response"
+              >
+                <ThumbsUp size={11} fill={reaction === 'up' ? 'currentColor' : 'none'} />
+              </button>
+              <button
+                onClick={() => handleReaction('down')}
+                className={`p-1 rounded-md transition-all opacity-0 group-hover:opacity-100 hover:scale-110 ${
+                  reaction === 'down'
+                    ? 'opacity-100 text-red-500'
+                    : dark ? 'text-slate-500 hover:text-red-400' : 'text-slate-400 hover:text-red-500'
+                }`}
+                title="Bad response"
+              >
+                <ThumbsDown size={11} fill={reaction === 'down' ? 'currentColor' : 'none'} />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {isUser && (

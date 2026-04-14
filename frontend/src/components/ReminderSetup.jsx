@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import confetti from 'canvas-confetti';
 import { Bell, Mail, Smartphone, Calendar, Check, Clock, Loader2 } from 'lucide-react';
 import { createReminder } from '../api';
+import { useToast } from './Toast';
 
 const FREQUENCIES = [
   { value: 'one-time', label: 'One-time', icon: Bell, desc: 'Single reminder' },
@@ -22,8 +24,25 @@ export default function ReminderSetup({ dark }) {
   const [date, setDate] = useState('2026-04-30');
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const { show: showToast } = useToast();
 
   const canSubmit = name && (delivery === 'email' ? email : phone) && date;
+
+  const fireConfetti = () => {
+    const colors = ['#6366f1', '#06b6d4', '#8b5cf6', '#10b981', '#f59e0b'];
+    // Main burst from center-bottom
+    confetti({
+      particleCount: 80,
+      spread: 70,
+      origin: { y: 0.7 },
+      colors,
+    });
+    // Side cannons
+    setTimeout(() => {
+      confetti({ particleCount: 40, angle: 60, spread: 55, origin: { x: 0, y: 0.8 }, colors });
+      confetti({ particleCount: 40, angle: 120, spread: 55, origin: { x: 1, y: 0.8 }, colors });
+    }, 200);
+  };
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -31,8 +50,10 @@ export default function ReminderSetup({ dark }) {
     try {
       await createReminder({ name, email, phone, frequency, delivery, next_date: date });
       setDone(true);
+      fireConfetti();
+      showToast('Reminder set successfully!', 'success', 2500);
     } catch {
-      // ignore
+      showToast('Failed to set reminder. Try again.', 'error');
     } finally {
       setLoading(false);
     }
@@ -40,9 +61,7 @@ export default function ReminderSetup({ dark }) {
 
   if (done) {
     return (
-      <div className={`msg-enter rounded-2xl overflow-hidden border max-w-lg ${
-        dark ? 'bg-slate-800/60 border-slate-700' : 'bg-white border-slate-200'
-      }`}>
+      <div className="msg-enter rounded-2xl overflow-hidden interactive-glass max-w-lg">
         <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-5 py-4">
           <div className="flex items-center gap-2 text-white">
             <Check size={20} />
@@ -79,9 +98,7 @@ export default function ReminderSetup({ dark }) {
   }
 
   return (
-    <div className={`msg-enter rounded-2xl overflow-hidden border max-w-lg ${
-      dark ? 'bg-slate-800/60 border-slate-700' : 'bg-white border-slate-200'
-    }`}>
+    <div className="msg-enter rounded-2xl overflow-hidden interactive-glass max-w-lg">
       {/* Header */}
       <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-4">
         <div className="flex items-center gap-2 text-white">

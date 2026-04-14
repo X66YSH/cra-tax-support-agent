@@ -41,9 +41,7 @@ export default function BookClinic({ dark }) {
   const readyCount = [docs.has_sin, docs.has_t4, docs.has_t2202].filter(Boolean).length;
 
   return (
-    <div className={`msg-enter rounded-2xl overflow-hidden border max-w-lg ${
-      dark ? 'bg-slate-800/60 border-slate-700' : 'bg-white border-slate-200'
-    }`}>
+    <div className="msg-enter rounded-2xl overflow-hidden interactive-glass max-w-lg">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-500 to-pink-500 px-5 py-4">
         <div className="flex items-center gap-2 text-white">

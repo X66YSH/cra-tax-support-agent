@@ -59,7 +59,7 @@ export default function ChatWindow({ messages, loading, onSend, dark, activeActi
   }, [messages]);
 
   return (
-    <div className={`flex-1 flex flex-col h-screen ${dark ? 'bg-chat-bg-dark' : 'bg-chat-bg'}`}>
+    <div className="flex-1 flex flex-col h-screen relative z-10">
       {/* Header bar */}
       <div className={`header-blur px-4 md:px-6 py-3 border-b flex items-center gap-3 ${
         dark ? 'border-slate-800' : 'border-slate-200'
@@ -70,9 +70,7 @@ export default function ChatWindow({ messages, loading, onSend, dark, activeActi
         >
           <Menu size={18} />
         </button>
-        <div className="bot-avatar w-7 h-7 rounded-lg flex items-center justify-center shadow-sm">
-          <Landmark size={12} className="text-white" />
-        </div>
+        <img src="/logo.svg" alt="CRA Tax" className="w-7 h-7 rounded-lg shadow-sm" />
         <span className={`text-sm font-semibold ${dark ? 'text-slate-200' : 'text-slate-800'}`}>
           CRA Tax Assistant
         </span>
@@ -99,9 +97,7 @@ export default function ChatWindow({ messages, loading, onSend, dark, activeActi
               if (!Component) return null;
               return (
                 <div key={msg.id} className="flex gap-3 justify-start">
-                  <div className="bot-avatar w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow-sm">
-                    <Landmark size={14} className="text-white" />
-                  </div>
+                  <img src="/logo.svg" alt="CRA Tax" className="w-8 h-8 rounded-full flex-shrink-0 mt-1 shadow-sm" />
                   <Component dark={dark} />
                 </div>
               );

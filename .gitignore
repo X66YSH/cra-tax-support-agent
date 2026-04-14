@@ -2,10 +2,10 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
-dist/
 build/
 venv/
 .venv/
+# Note: dist/ is NOT in gitignore — frontend/dist is committed for Render deployment
 
 # Environment
 .env
@@ -22,10 +22,9 @@ Thumbs.db
 
 # Data
 *.db
-chroma_db/
 data/raw/html/
 data/raw/pdfs/
-data/processed/
+# chroma_db/ and data/processed/ committed — deployments don't re-scrape/re-index
 
 # Misc
 *.log

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatWindow from './components/ChatWindow';
+import { ToastProvider } from './components/Toast';
 import { createSession, listSessions, getSession, deleteSession, sendMessage } from './api';
 
 const INTERACTIVE_ACTIONS = {
@@ -175,7 +176,18 @@ export default function App() {
   }, []);
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <ToastProvider dark={dark}>
+    <div className="flex h-screen overflow-hidden app-container relative">
+      {/* Aurora background blobs */}
+      <div className="aurora-bg">
+        <div className="aurora-blob aurora-blob-1" />
+        <div className="aurora-blob aurora-blob-2" />
+        <div className="aurora-blob aurora-blob-3" />
+      </div>
+
+      {/* Noise grain overlay — adds premium film-grain feel */}
+      <div className="noise-overlay" />
+
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/40 z-30 md:hidden"
@@ -206,5 +218,6 @@ export default function App() {
         onOpenSidebar={() => setSidebarOpen(true)}
       />
     </div>
+    </ToastProvider>
   );
 }

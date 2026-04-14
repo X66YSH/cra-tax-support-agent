@@ -1,15 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Calculator, Gift, Bell, CalendarCheck } from 'lucide-react';
+import InputSuggestions from './InputSuggestions';
 
 const actions = [
-  { icon: Calculator, label: 'Tax Estimate', message: 'I want to estimate my taxes', color: 'text-blue-400', lightBg: 'bg-blue-50 border-blue-200', darkBg: 'bg-blue-950/30 border-blue-800/50' },
-  { icon: Gift, label: 'Benefits', message: 'Check my benefit eligibility', color: 'text-emerald-400', lightBg: 'bg-emerald-50 border-emerald-200', darkBg: 'bg-emerald-950/30 border-emerald-800/50' },
-  { icon: Bell, label: 'Filing', message: 'Set up a filing reminder for me', color: 'text-amber-400', lightBg: 'bg-amber-50 border-amber-200', darkBg: 'bg-amber-950/30 border-amber-800/50' },
-  { icon: CalendarCheck, label: 'Book Clinic', message: 'I want to book a tax clinic appointment', color: 'text-purple-400', lightBg: 'bg-purple-50 border-purple-200', darkBg: 'bg-purple-950/30 border-purple-800/50' },
+  { icon: Calculator, label: 'Tax Estimate', message: 'I want to estimate my taxes', lightColor: 'text-blue-600', darkColor: 'text-blue-300', lightBg: 'bg-blue-50/70 border-blue-200/60', darkBg: 'glass-chip-blue' },
+  { icon: Gift, label: 'Benefits', message: 'Check my benefit eligibility', lightColor: 'text-emerald-600', darkColor: 'text-emerald-300', lightBg: 'bg-emerald-50/70 border-emerald-200/60', darkBg: 'glass-chip-emerald' },
+  { icon: Bell, label: 'Filing', message: 'Set up a filing reminder for me', lightColor: 'text-amber-600', darkColor: 'text-amber-300', lightBg: 'bg-amber-50/70 border-amber-200/60', darkBg: 'glass-chip-amber' },
+  { icon: CalendarCheck, label: 'Book Clinic', message: 'I want to book a tax clinic appointment', lightColor: 'text-purple-600', darkColor: 'text-purple-300', lightBg: 'bg-purple-50/70 border-purple-200/60', darkBg: 'glass-chip-purple' },
 ];
 
 export default function ChatInput({ onSend, disabled, dark, activeAction }) {
   const [text, setText] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const inputRef = useRef(null);
 
   // Re-focus input after loading finishes
@@ -23,6 +25,14 @@ export default function ChatInput({ onSend, disabled, dark, activeAction }) {
     if (!trimmed || disabled) return;
     onSend(trimmed);
     setText('');
+    setShowSuggestions(false);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const handleSelectSuggestion = (suggestion) => {
+    setText('');
+    setShowSuggestions(false);
+    onSend(suggestion);
     setTimeout(() => inputRef.current?.focus(), 0);
   };
 
@@ -34,17 +44,17 @@ export default function ChatInput({ onSend, disabled, dark, activeAction }) {
   };
 
   return (
-    <div className={`border-t px-4 py-3 ${dark ? 'border-slate-800' : 'border-slate-200'}`}>
+    <div className={`border-t px-4 py-3 header-blur ${dark ? 'border-slate-800/50' : 'border-slate-200/50'}`}>
       {/* Action chips — always visible */}
-      <div className="flex gap-2 mb-3 overflow-x-auto pb-1">
+      <div className="flex gap-2 mb-3 overflow-x-auto overflow-y-visible pb-1 pt-1 px-1 -mx-1">
         {actions.map((a, i) => (
           <button
             key={i}
             onClick={() => !disabled && onSend(a.message)}
             disabled={disabled}
-            className={`action-chip flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border whitespace-nowrap transition-opacity ${
+            className={`action-chip action-chip-magnetic flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border whitespace-nowrap transition-opacity ${
               disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-            } ${dark ? a.darkBg : a.lightBg} ${a.color}`}
+            } ${dark ? a.darkBg : a.lightBg} ${dark ? a.darkColor : a.lightColor}`}
           >
             <a.icon size={13} />
             {a.label}
@@ -52,16 +62,25 @@ export default function ChatInput({ onSend, disabled, dark, activeAction }) {
         ))}
       </div>
 
-      {/* Input */}
-      <form onSubmit={handleSubmit}>
-        <div className={`flex items-end gap-2 rounded-2xl px-4 py-2.5 ${
-          dark ? 'bg-slate-800/80 border border-slate-700' : 'bg-white border border-slate-200'
-        } focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/40 transition-all shadow-sm`}>
+      {/* Input with AI suggestions dropdown */}
+      <form onSubmit={handleSubmit} className="relative">
+        {showSuggestions && !disabled && text.trim().length >= 2 && (
+          <InputSuggestions
+            query={text}
+            onSelect={handleSelectSuggestion}
+            dark={dark}
+          />
+        )}
+        <div className={`input-glow flex items-end gap-2 rounded-2xl px-4 py-2.5 glass-bubble ${
+          dark ? 'border border-slate-700/50' : 'border border-slate-200'
+        } transition-all shadow-sm`}>
           <textarea
             ref={inputRef}
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
             placeholder="Ask about Canadian taxes, benefits, filing..."
             rows={1}
             disabled={disabled}
