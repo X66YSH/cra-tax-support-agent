@@ -1,3 +1,13 @@
+---
+title: CRA Tax Support Agent
+emoji: 🍁
+colorFrom: indigo
+colorTo: purple
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # CRA Tax Support Agent for UofT Students
 
 A conversational AI agent that helps University of Toronto students navigate Canadian tax filing, credits, and benefits using RAG-powered knowledge retrieval and multi-turn agentic workflows.
