@@ -7,10 +7,13 @@ export default function TypingIndicator({ dark }) {
         <Landmark size={14} className="text-white" />
       </div>
       <div className={`px-4 py-3 rounded-2xl rounded-bl-md ${dark ? 'glass-bubble' : 'glass-bubble shadow-sm'}`}>
-        <div className="flex gap-1.5 items-center h-5">
-          <div className={`typing-dot w-2 h-2 rounded-full ${dark ? 'bg-indigo-400' : 'bg-indigo-500'}`} />
-          <div className={`typing-dot w-2 h-2 rounded-full ${dark ? 'bg-indigo-400' : 'bg-indigo-500'}`} />
-          <div className={`typing-dot w-2 h-2 rounded-full ${dark ? 'bg-indigo-400' : 'bg-indigo-500'}`} />
+        <div className="flex gap-2 items-center">
+          <span className={`text-xs font-medium ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Thinking</span>
+          <div className="flex gap-1 items-center">
+            <div className={`typing-dot w-1.5 h-1.5 rounded-full ${dark ? 'bg-indigo-400' : 'bg-indigo-500'}`} />
+            <div className={`typing-dot w-1.5 h-1.5 rounded-full ${dark ? 'bg-indigo-400' : 'bg-indigo-500'}`} />
+            <div className={`typing-dot w-1.5 h-1.5 rounded-full ${dark ? 'bg-indigo-400' : 'bg-indigo-500'}`} />
+          </div>
         </div>
       </div>
     </div>

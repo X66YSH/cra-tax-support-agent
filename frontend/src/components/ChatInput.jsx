@@ -2,10 +2,10 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, Calculator, Gift, Bell, CalendarCheck } from 'lucide-react';
 
 const actions = [
-  { icon: Calculator, label: 'Tax Estimate', message: 'I want to estimate my taxes', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/40', border: 'border-blue-200 dark:border-blue-800' },
-  { icon: Gift, label: 'Benefits', message: 'Check my benefit eligibility', color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/40', border: 'border-emerald-200 dark:border-emerald-800' },
-  { icon: Bell, label: 'Filing', message: 'Set up a filing reminder for me', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-950/40', border: 'border-amber-200 dark:border-amber-800' },
-  { icon: CalendarCheck, label: 'Book Clinic', message: 'I want to book a tax clinic appointment', color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-950/40', border: 'border-purple-200 dark:border-purple-800' },
+  { icon: Calculator, label: 'Tax Estimate', message: 'I want to estimate my taxes', color: 'text-blue-400', lightBg: 'bg-blue-50 border-blue-200', darkBg: 'bg-blue-950/30 border-blue-800/50' },
+  { icon: Gift, label: 'Benefits', message: 'Check my benefit eligibility', color: 'text-emerald-400', lightBg: 'bg-emerald-50 border-emerald-200', darkBg: 'bg-emerald-950/30 border-emerald-800/50' },
+  { icon: Bell, label: 'Filing', message: 'Set up a filing reminder for me', color: 'text-amber-400', lightBg: 'bg-amber-50 border-amber-200', darkBg: 'bg-amber-950/30 border-amber-800/50' },
+  { icon: CalendarCheck, label: 'Book Clinic', message: 'I want to book a tax clinic appointment', color: 'text-purple-400', lightBg: 'bg-purple-50 border-purple-200', darkBg: 'bg-purple-950/30 border-purple-800/50' },
 ];
 
 export default function ChatInput({ onSend, disabled, dark, activeAction }) {
@@ -44,7 +44,7 @@ export default function ChatInput({ onSend, disabled, dark, activeAction }) {
             disabled={disabled}
             className={`action-chip flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border whitespace-nowrap transition-opacity ${
               disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-            } ${a.bg} ${a.border} ${a.color}`}
+            } ${dark ? a.darkBg : a.lightBg} ${a.color}`}
           >
             <a.icon size={13} />
             {a.label}

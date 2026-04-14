@@ -90,7 +90,7 @@ export default function ChatWindow({ messages, loading, onSend, dark, activeActi
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-4 relative"
+          className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-4 relative chat-pattern"
         >
           {messages.map((msg) => {
             // Render interactive cards inline

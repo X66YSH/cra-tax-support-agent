@@ -17,7 +17,7 @@ export default function Sidebar({ sessions, activeId, onSelect, onCreate, onDele
   };
 
   return (
-    <div className={`w-72 h-screen flex flex-col border-r ${dark ? 'bg-sidebar-dark border-slate-800' : 'bg-sidebar border-slate-200'}`}>
+    <div className={`w-72 h-screen flex flex-col border-r sidebar-gradient ${dark ? 'border-slate-800' : 'border-slate-200'}`}>
       {/* Header */}
       <div className={`p-4 border-b ${dark ? 'border-slate-800' : 'border-slate-200'}`}>
         <div className="flex items-center gap-3 mb-4">

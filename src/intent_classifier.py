@@ -102,7 +102,7 @@ def _init_intent_embeddings():
     logger.info(f"Intent embeddings ready: {list(_intent_embeddings.keys())}")
 
 
-def embedding_classify(user_message: str, threshold: float = 0.55) -> tuple[str | None, float]:
+def embedding_classify(user_message: str, threshold: float = 0.58) -> tuple[str | None, float]:
     """
     Zero-shot intent classification using embedding similarity.
 

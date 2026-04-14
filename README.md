@@ -14,6 +14,17 @@ A conversational AI agent that helps University of Toronto students navigate Can
 
 International students at UofT pay among Canada's highest tuition yet often miss credits worth thousands — tuition carry-forward, GST/HST credit, Ontario Trillium Benefit. This agent provides 24/7 pre-screening and document prep to help students prepare for tax season.
 
+## Screenshots
+
+**Welcome Screen** — Quick-access action cards and suggestions
+![Welcome](https://raw.githubusercontent.com/X66YSH/cra-tax-support-agent/main/docs/screenshots/welcome.png)
+
+**Chat with Source Citations** — Multi-turn conversation with clickable CRA source links
+![Chat](https://raw.githubusercontent.com/X66YSH/cra-tax-support-agent/main/docs/screenshots/chat.png)
+
+**Interactive Tax Calculator** — Client-side computation with 2024 Canadian tax brackets
+![Tax Calculator](https://raw.githubusercontent.com/X66YSH/cra-tax-support-agent/main/docs/screenshots/tax-calculator.png)
+
 ## Features
 
 - **Knowledge Base**: 69 sources (61 HTML + 8 PDF) from CRA and UofT → 1,493 chunks in ChromaDB
@@ -30,31 +41,38 @@ International students at UofT pay among Canada's highest tuition yet often miss
 | LLM | qwen3-30b-a3b-fp8 (course endpoint) |
 | Framework | LangChain, LangGraph |
 | Vector DB | ChromaDB (cosine similarity, HNSW) |
-| Embeddings | all-MiniLM-L6-v2 (sentence-transformers) |
-| State | SQLite |
+| Embeddings | all-MiniLM-L6-v2 (sentence-transformers, 384-dim) |
+| Intent Classifier | Hybrid: zero-shot embedding similarity + LLM fallback |
+| State | SQLite (sessions, messages, reminders) |
 | Backend | FastAPI + Uvicorn |
-| Frontend | React 19 + Vite + TailwindCSS |
-| Scraping | BeautifulSoup + PyPDF2 |
+| Frontend | React 19 + Vite + TailwindCSS 4 |
+| Scraping | BeautifulSoup + pdfplumber |
 
 ## Architecture
 
 ```
-User → React Frontend → FastAPI Backend → Intent Classifier (LLM)
-                                              ↓
-                              ┌────────────────┼────────────────┐
-                              ↓                ↓                ↓
-                        Action Handler    RAG Pipeline     Guardrails
-                        (LangGraph)      (ChromaDB)       (Safety Filter)
-                              ↓                ↓                ↓
-                        Parameter         Semantic           Block/Redirect
-                        Collection        Search + QE
-                              ↓                ↓
-                              └────────┬───────┘
-                                       ↓
-                                 LLM Response
-                                       ↓
-                              Session State (SQLite)
+User → React Frontend → FastAPI Backend
+                              ↓
+                  ┌───────────┴───────────┐
+                  ↓                       ↓
+        Hybrid Intent Classifier    Conversation History
+        (Embedding + LLM fallback)  (last 6 msgs → LLM)
+                  ↓
+    ┌─────────────┼────────────┬───────────┐
+    ↓             ↓            ↓           ↓
+general_     action_      out_of_    short_follow_up
+question     intent       scope      (skip classify)
+    ↓             ↓            ↓           ↓
+RAG Pipeline  Param      Guardrail   RAG w/ context
+(ChromaDB)    Extraction Response
+    ↓             ↓
+LLM + Sources  Tax Calc (client) or
+               LLM multi-turn action
+                  ↓
+          Session State (SQLite)
 ```
+
+The **hybrid intent classifier** uses zero-shot embedding similarity (reusing the RAG embedding model) to classify intent in ~10ms. Only ambiguous queries fall back to LLM classification, cutting response time from ~25s to ~10s.
 
 ## Setup
 
@@ -132,9 +150,10 @@ cra-tax-support-agent/
 │   └── public/logo.svg    # App logo
 ├── src/
 │   ├── ingestion/         # Scraping (HTML + PDF) and chunking
-│   ├── rag/               # Embedding, ChromaDB indexing, retrieval
-│   ├── agent/             # Intent classification, action routing
-│   └── guardrails/        # Safety filters and disclaimers
+│   ├── rag/               # Embedding, ChromaDB indexing, retrieval, query expansion
+│   ├── actions/           # Tax estimate, benefits, reminder, booking (LangGraph)
+│   ├── intent_classifier.py  # Hybrid embedding + LLM classifier
+│   └── llm.py             # LLM client wrapper (qwen3-30b-a3b-fp8)
 ├── tests/                 # 35 evaluation test cases
 │   ├── test_actions.py
 │   ├── eval_results.txt
