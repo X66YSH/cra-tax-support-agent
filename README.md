@@ -1,13 +1,3 @@
----
-title: CRA Tax Support Agent
-emoji: 🍁
-colorFrom: indigo
-colorTo: purple
-sdk: docker
-app_port: 7860
-pinned: false
----
-
 # CRA Tax Support Agent for UofT Students
 
 A conversational AI agent that helps University of Toronto students navigate Canadian tax filing, credits, and benefits using RAG-powered knowledge retrieval and multi-turn agentic workflows.
@@ -61,28 +51,43 @@ International students at UofT pay among Canada's highest tuition yet often miss
 ## Architecture
 
 ```
-User → React Frontend → FastAPI Backend
-                              ↓
-                  ┌───────────┴───────────┐
-                  ↓                       ↓
-        Hybrid Intent Classifier    Conversation History
-        (Embedding + LLM fallback)  (last 6 msgs → LLM)
-                  ↓
-    ┌─────────────┼────────────┬───────────┐
-    ↓             ↓            ↓           ↓
-general_     action_      out_of_    short_follow_up
-question     intent       scope      (skip classify)
-    ↓             ↓            ↓           ↓
-RAG Pipeline  Param      Guardrail   RAG w/ context
-(ChromaDB)    Extraction Response
-    ↓             ↓
-LLM + Sources  Tax Calc (client) or
-               LLM multi-turn action
-                  ↓
-          Session State (SQLite)
+User Message
+    ↓
+┌── Tier 1: Embedding Classifier (~10ms) ──┐
+│   cosine similarity vs 36 exemplar        │
+│   phrases using all-MiniLM-L6-v2          │
+└───────────────┬───────────────────────────┘
+                ↓
+         score ≥ 0.58?
+          ↙        ↘
+       YES          NO
+        ↓            ↓
+  Intent Routing   ≤8 words + history?
+  (1 of 6)          ↙        ↘
+        ↓         YES          NO
+        ↓          ↓            ↓
+        ↓    Tier 2: Shortcut  Tier 3: LLM Fallback (~5-10s)
+        ↓    (→ general_q)     (full classifier prompt)
+        ↓          ↓            ↓
+        ↓          ↓       Intent Routing
+        ↓          ↓            ↓
+    ┌───┴──────────┴────────────┴──────────────┐
+    ↓              ↓              ↓             ↓
+general_q     action intents   out_of_scope   clarification
+    ↓              ↓              ↓             ↓
+RAG Pipeline   Param Extract   Guardrail     "Pick one
+(full search)  (LLM #1 ~5s)   (hardcoded,    of 4 options"
+    ↓              ↓            0 LLM calls)
+LLM Generate   RAG Retrieval
+(generic +     (feature-filtered)
+ 6-msg history)     ↓
+    ↓          LLM Generate
+Response +     (action prompt)
+Sources             ↓
+               Action Response
 ```
 
-The **hybrid intent classifier** uses zero-shot embedding similarity (reusing the RAG embedding model) to classify intent in ~10ms. Only ambiguous queries fall back to LLM classification, cutting response time from ~25s to ~10s.
+The **3-tier hybrid intent classifier** reuses the same all-MiniLM-L6-v2 embedding model from the RAG pipeline to classify intent via cosine similarity against 36 exemplar phrases (~10ms). When the embedding score is below the 0.58 threshold, short follow-up messages skip classification entirely (Tier 2 shortcut to general_question), while longer ambiguous queries fall back to full LLM classification (Tier 3). This cut average response time from ~25s to ~10s by eliminating one LLM call for the majority of queries.
 
 ## Setup
 
@@ -100,11 +105,9 @@ pip install -r requirements.txt
 cp .env.example .env
 # Edit .env with your API key
 
-# Build the RAG knowledge base (first time only)
-python -m src.rag.run_rag --index
-
-# Install frontend dependencies
-cd frontend && npm install && cd ..
+# Note: chroma_db/ and frontend/dist/ are pre-built in the repo.
+# No need to run ingestion, indexing, or npm build.
+# The embedding model (~90MB) will auto-download on first startup.
 ```
 
 ## Running
@@ -186,6 +189,10 @@ Each team member works on their own branch and submits pull requests to `main`:
 | `zhuoyi` | Zhuoyi Qu |
 | `zilin` | Zilin Cai |
 
+## Acknowledgements
+
+Built as the final project for RSM 8430 (Applications of Large Language Models), Rotman School of Management, University of Toronto, Winter 2026. LLM endpoint (qwen3-30b-a3b-fp8) provided by the course instructor.
+
 ## License
 
-This project is for academic purposes — University of Toronto, Winter 2026.
+MIT License — see [LICENSE](LICENSE) for details.

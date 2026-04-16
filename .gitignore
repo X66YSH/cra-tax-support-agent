@@ -5,7 +5,6 @@ __pycache__/
 build/
 venv/
 .venv/
-# Note: dist/ is NOT in gitignore — frontend/dist is committed for Render deployment
 
 # Environment
 .env
@@ -20,11 +19,15 @@ venv/
 .DS_Store
 Thumbs.db
 
-# Data
+# Data — raw scraping output (large, re-scrapable)
 *.db
-data/raw/html/
-data/raw/pdfs/
-# chroma_db/ and data/processed/ committed — deployments don't re-scrape/re-index
+data/raw/
+
+# Committed to git (needed for deployment without re-indexing):
+#   chroma_db/           — pre-built vector index
+#   data/processed/      — chunked documents
+#   frontend/dist/       — pre-built React frontend
 
 # Misc
 *.log
+node_modules/
