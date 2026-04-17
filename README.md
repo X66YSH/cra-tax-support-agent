@@ -16,14 +16,20 @@ International students at UofT pay among Canada's highest tuition yet often miss
 
 ## Screenshots
 
-**Welcome Screen** — Quick-access action cards and suggestions
+**Welcome Screen** — Aurora glassmorphism UI with quick-access action cards
 ![Welcome](https://raw.githubusercontent.com/X66YSH/cra-tax-support-agent/main/docs/screenshots/welcome.png)
 
-**Chat with Source Citations** — Multi-turn conversation with clickable CRA source links
+**Interactive Tax Calculator** — Client-side computation with real 2024 federal + provincial brackets
+![Tax Calculator](https://raw.githubusercontent.com/X66YSH/cra-tax-support-agent/main/docs/screenshots/tax-calculator.png)
+
+**AI Input Suggestions + Tax Breakdown** — Contextual question suggestions and detailed income breakdown with visual bars
+![Suggestions](https://raw.githubusercontent.com/X66YSH/cra-tax-support-agent/main/docs/screenshots/suggestions.png)
+
+**RAG-Powered Chat** — Multi-turn conversation with grounded answers from CRA documents
 ![Chat](https://raw.githubusercontent.com/X66YSH/cra-tax-support-agent/main/docs/screenshots/chat.png)
 
-**Interactive Tax Calculator** — Client-side computation with 2024 Canadian tax brackets
-![Tax Calculator](https://raw.githubusercontent.com/X66YSH/cra-tax-support-agent/main/docs/screenshots/tax-calculator.png)
+**Source Preview** — Click any source citation to see the retrieved passage with keyword highlighting and relevance score
+![Source Preview](https://raw.githubusercontent.com/X66YSH/cra-tax-support-agent/main/docs/screenshots/source-preview.png)
 
 ## Features
 
